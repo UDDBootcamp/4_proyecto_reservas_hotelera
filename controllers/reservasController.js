@@ -1,8 +1,6 @@
 import fs from 'fs/promises';
 const getReservas = './data/reservas.json';
 
-let idActual = 1;
-
 // operaciones CRUD
 export const obtenerReservas = async (req, res) => {
   try {
@@ -29,8 +27,12 @@ export const crearReserva = async (req, res) => {
       num_huespedes,
       estado,
     } = req.body;
+
+    const ultimoId =
+      reservas.length > 0 ? Math.max(...reservas.map((r) => r.id)) : 0;
+
     const nueva = {
-      id: idActual++,
+      id: ultimoId + 1,
       hotel,
       reservas: nombreReserva,
       fecha_inicio,
@@ -56,7 +58,11 @@ export const actualizarReserva = async (req, res) => {
     const data = await fs.readFile(getReservas, 'utf-8');
     const reservas = JSON.parse(data);
 
+    console.log(id, ' - ', typeof id);
+
     const index = reservas.findIndex((r) => r.reservas === id);
+    console.log(index);
+
     if (index === -1) {
       return res
         .status(404)
