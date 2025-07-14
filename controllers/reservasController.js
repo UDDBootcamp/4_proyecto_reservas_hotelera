@@ -75,7 +75,7 @@ export const actualizarReserva = async (req, res) => {
 
     res.json({
       mensaje: 'Reserva actualizada con éxito',
-      reserva: reserva[resultado],
+      reservas: reserva[resultado],
     });
   } catch (error) {
     console.error(error);
@@ -96,7 +96,7 @@ export const eliminarReserva = async (req, res) => {
 
       res.json({
         mensaje: 'La reserva fue eliminada con éxito',
-        reserva: eliminada[0],
+        reservas: eliminada[0],
       });
     } else {
       res.status(404).json({ mensaje: 'La reserva no fue encontrada' });
@@ -125,7 +125,7 @@ export const filtrarPorHotel = async (req, res) => {
 
     res.json({
       mensaje: 'Reserva encontradas',
-      reserva: resultado,
+      reservas: resultado,
     });
   } catch (error) {
     console.error(error);
@@ -256,7 +256,7 @@ export const obtenerReservasIndividual = async (req, res) => {
 
     res.json({
       mensaje: 'Reserva encontrada',
-      reserva: reserva[resultado],
+      reservas: reserva[resultado],
     });
   } catch (error) {
     console.error(error);
