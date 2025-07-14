@@ -10,7 +10,6 @@ import {
   filtrarPorHabitacion,
   filtrarPorEstado,
   filtrarPorHuesped,
-  // obtenerCanceladas,
 } from '../controllers/reservasController.js';
 
 const router = Router();
@@ -26,6 +25,5 @@ router.get('/fecha', filtrarPorFecha);
 router.get('/habitacion/:habitacion', filtrarPorHabitacion);
 router.get('/estado/:estado', filtrarPorEstado);
 router.get('/huesped', filtrarPorHuesped);
-// router.get("/canceladas", obtenerCanceladas);
 
 export default router;

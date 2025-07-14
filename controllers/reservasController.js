@@ -8,30 +8,7 @@ export const obtenerReservas = async (req, res) => {
     const reservas = JSON.parse(data);
     res.json(reservas);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener las reservas' });
-  }
-};
-
-export const obtenerReservasIndividual = async (req, res) => {
-  try {
-    const { reservaIndividual } = req.params;
-    const data = await fs.readFile(getReservas, 'utf-8');
-    const reserva = JSON.parse(data);
-    const resultado = reserva.findIndex(
-      (r) => r.reservas === Number(reservaIndividual)
-    );
-
-    if (resultado === -1) {
-      return res
-        .status(404)
-        .json({ mensaje: 'Reserva no encontrada con ese número' });
-    }
-
-    res.json({
-      mensaje: 'Reserva encontrada',
-      reserva: reserva[resultado],
-    });
-  } catch (error) {
+    console.error(error);
     res.status(500).json({ mensaje: 'Error al obtener las reservas' });
   }
 };
@@ -67,11 +44,12 @@ export const crearReserva = async (req, res) => {
       num_huespedes,
       estado,
     };
-    reservas.push(nueva);
-    await fs.writeFile(getReservas, JSON.stringify(reservas, null, 2));
+    reserva.push(nueva);
+    await fs.writeFile(getReservas, JSON.stringify(reserva, null, 2));
 
     res.status(201).json({ mensaje: 'Reserva creada con éxito', nueva });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ mensaje: 'Error al obtener las reservas' });
   }
 };
@@ -89,15 +67,15 @@ export const actualizarReserva = async (req, res) => {
         .json({ mensaje: 'Reserva no encontrada con ese número' });
     }
 
-    reserva[index] = {
-      ...reserva[index],
+    reserva[resultado] = {
+      ...reserva[resultado],
       ...req.body,
     };
     await fs.writeFile(getReservas, JSON.stringify(reserva, null, 2));
 
     res.json({
       mensaje: 'Reserva actualizada con éxito',
-      reserva: reserva[index],
+      reserva: reserva[resultado],
     });
   } catch (error) {
     console.error(error);
@@ -113,7 +91,7 @@ export const eliminarReserva = async (req, res) => {
     const resultado = reserva.findIndex((r) => r.id === Number(id));
 
     if (resultado !== -1) {
-      const eliminada = reserva.splice(index, 1);
+      const eliminada = reserva.splice(resultado, 1);
       await fs.writeFile(getReservas, JSON.stringify(reserva, null, 2));
 
       res.json({
@@ -258,5 +236,30 @@ export const filtrarPorHuesped = async (req, res) => {
     res
       .status(500)
       .json({ mensaje: 'Error al filtrar la reserva por huéspedes' });
+  }
+};
+
+export const obtenerReservasIndividual = async (req, res) => {
+  try {
+    const { reservaIndividual } = req.params;
+    const data = await fs.readFile(getReservas, 'utf-8');
+    const reserva = JSON.parse(data);
+    const resultado = reserva.findIndex(
+      (r) => r.reservas === Number(reservaIndividual)
+    );
+
+    if (resultado === -1) {
+      return res
+        .status(404)
+        .json({ mensaje: 'Reserva no encontrada con ese número' });
+    }
+
+    res.json({
+      mensaje: 'Reserva encontrada',
+      reserva: reserva[resultado],
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ mensaje: 'Error al obtener las reservas' });
   }
 };
