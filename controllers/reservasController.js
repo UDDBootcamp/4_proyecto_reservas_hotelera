@@ -59,9 +59,11 @@ export const crearReserva = async (req, res) => {
 
 export const actualizarReserva = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { idReserva } = req.params;
     const reserva = await cargarReservas();
-    const resultado = reserva.findIndex((r) => r.reservas === Number(id));
+    const resultado = reserva.findIndex(
+      (r) => r.reservas === Number(idReserva)
+    );
 
     if (resultado === -1) {
       return res
@@ -87,9 +89,9 @@ export const actualizarReserva = async (req, res) => {
 
 export const eliminarReserva = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { idReserva } = req.params;
     const reserva = await cargarReservas();
-    const resultado = reserva.findIndex((r) => r.id === Number(id));
+    const resultado = reserva.findIndex((r) => r.id === Number(idReserva));
 
     if (resultado !== -1) {
       const eliminada = reserva.splice(resultado, 1);

@@ -17,8 +17,8 @@ const router = Router();
 router.get('/', obtenerReservas);
 router.get('/reservaIndividual/:reservaIndividual', obtenerReservasIndividual);
 router.post('/', crearReserva);
-router.put('/:id', actualizarReserva);
-router.delete('/:id', eliminarReserva);
+router.put('/:idReserva', actualizarReserva);
+router.delete('/:idReserva', eliminarReserva);
 
 router.get('/filtrar/:hotel', filtrarPorHotel);
 router.get('/fecha', filtrarPorFecha);
