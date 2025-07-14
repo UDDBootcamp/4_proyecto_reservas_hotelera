@@ -1,12 +1,16 @@
 import fs from 'fs/promises';
 const getReservas = './data/reservas.json';
 
+const cargarReservas = async () => {
+  const data = await fs.readFile(getReservas, 'utf-8');
+  return JSON.parse(data);
+};
+
 // operaciones CRUD
 export const obtenerReservas = async (req, res) => {
   try {
-    const data = await fs.readFile(getReservas, 'utf-8');
-    const reservas = JSON.parse(data);
-    res.json(reservas);
+    const reserva = await cargarReservas();
+    res.json(reserva);
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: 'Error al obtener las reservas' });
@@ -15,8 +19,7 @@ export const obtenerReservas = async (req, res) => {
 
 export const crearReserva = async (req, res) => {
   try {
-    const data = await fs.readFile(getReservas, 'utf-8');
-    const reserva = JSON.parse(data);
+    const reserva = await cargarReservas();
     const {
       hotel,
       reservas: nombreReserva,
@@ -57,8 +60,7 @@ export const crearReserva = async (req, res) => {
 export const actualizarReserva = async (req, res) => {
   try {
     const { id } = req.params;
-    const data = await fs.readFile(getReservas, 'utf-8');
-    const reserva = JSON.parse(data);
+    const reserva = await cargarReservas();
     const resultado = reserva.findIndex((r) => r.reservas === Number(id));
 
     if (resultado === -1) {
@@ -86,8 +88,7 @@ export const actualizarReserva = async (req, res) => {
 export const eliminarReserva = async (req, res) => {
   try {
     const { id } = req.params;
-    const data = await fs.readFile(getReservas, 'utf-8');
-    const reserva = JSON.parse(data);
+    const reserva = await cargarReservas();
     const resultado = reserva.findIndex((r) => r.id === Number(id));
 
     if (resultado !== -1) {
@@ -111,8 +112,7 @@ export const eliminarReserva = async (req, res) => {
 export const filtrarPorHotel = async (req, res) => {
   try {
     const { hotel } = req.params;
-    const data = await fs.readFile(getReservas, 'utf-8');
-    const reserva = JSON.parse(data);
+    const reserva = await cargarReservas();
     const resultado = reserva.filter(
       (r) => r.hotel.toLowerCase() === hotel.toLowerCase()
     );
@@ -136,8 +136,7 @@ export const filtrarPorHotel = async (req, res) => {
 export const filtrarPorFecha = async (req, res) => {
   try {
     const { fecha_inicio, fecha_fin } = req.query;
-    const data = await fs.readFile(getReservas, 'utf-8');
-    const reserva = JSON.parse(data);
+    const reserva = await cargarReservas();
     const resultado = reserva.filter((r) => {
       return (
         r.fecha_inicio &&
@@ -166,8 +165,7 @@ export const filtrarPorFecha = async (req, res) => {
 export const filtrarPorHabitacion = async (req, res) => {
   try {
     const { habitacion } = req.params;
-    const data = await fs.readFile(getReservas, 'utf-8');
-    const reserva = JSON.parse(data);
+    const reserva = await cargarReservas();
     const resultado = reserva.filter(
       (r) => r.tipo_habitacion.toLowerCase() === habitacion.toLowerCase()
     );
@@ -193,8 +191,7 @@ export const filtrarPorHabitacion = async (req, res) => {
 export const filtrarPorEstado = async (req, res) => {
   try {
     const { estado } = req.params;
-    const data = await fs.readFile(getReservas, 'utf-8');
-    const reserva = JSON.parse(data);
+    const reserva = await cargarReservas();
     const resultado = reserva.filter(
       (r) => r.estado.toLowerCase() === estado.toLowerCase()
     );
@@ -217,8 +214,7 @@ export const filtrarPorEstado = async (req, res) => {
 
 export const filtrarPorHuesped = async (req, res) => {
   try {
-    const data = await fs.readFile(getReservas, 'utf-8');
-    const reserva = JSON.parse(data);
+    const reserva = await cargarReservas();
     const resultado = reserva.filter((r) => r.num_huespedes > 5);
 
     if (resultado.length === 0) {
@@ -242,8 +238,7 @@ export const filtrarPorHuesped = async (req, res) => {
 export const obtenerReservasIndividual = async (req, res) => {
   try {
     const { reservaIndividual } = req.params;
-    const data = await fs.readFile(getReservas, 'utf-8');
-    const reserva = JSON.parse(data);
+    const reserva = await cargarReservas();
     const resultado = reserva.findIndex(
       (r) => r.reservas === Number(reservaIndividual)
     );
