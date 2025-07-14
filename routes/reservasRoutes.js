@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import {
   obtenerReservas,
-  obtenerReservasIndividual,
   crearReserva,
   actualizarReserva,
   eliminarReserva,
@@ -10,12 +9,12 @@ import {
   filtrarPorHabitacion,
   filtrarPorEstado,
   filtrarPorHuesped,
+  obtenerReservasIndividual,
 } from '../controllers/reservasController.js';
 
 const router = Router();
 
 router.get('/', obtenerReservas);
-router.get('/reservaIndividual/:reservaIndividual', obtenerReservasIndividual);
 router.post('/', crearReserva);
 router.put('/:idReserva', actualizarReserva);
 router.delete('/:idReserva', eliminarReserva);
@@ -25,5 +24,6 @@ router.get('/fecha', filtrarPorFecha);
 router.get('/habitacion/:habitacion', filtrarPorHabitacion);
 router.get('/estado/:estado', filtrarPorEstado);
 router.get('/huesped', filtrarPorHuesped);
+router.get('/reservaIndividual/:reservaIndividual', obtenerReservasIndividual);
 
 export default router;

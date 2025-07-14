@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import { v4 as uuidv4 } from 'uuid';
 const getReservas = './data/reservas.json';
 
 const cargarReservas = async () => {
@@ -32,11 +33,8 @@ export const crearReserva = async (req, res) => {
       estado,
     } = req.body;
 
-    const ultimoId =
-      reserva.length > 0 ? Math.max(...reserva.map((r) => r.id)) : 0;
-
     const nueva = {
-      id: ultimoId + 1,
+      id: uuidv4(),
       hotel,
       reservas: nombreReserva,
       fecha_inicio,
