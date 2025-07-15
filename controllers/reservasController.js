@@ -2,16 +2,19 @@ import fs from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 const getReservas = './data/reservas.json';
 
-// funciones DRY
+// Funciones DRY
+// Cargar todas las reservas
 const cargarReservas = async () => {
   const data = await fs.readFile(getReservas, 'utf-8');
   return JSON.parse(data);
 };
 
+// Obtengo la fecha actual
 const fechaActual = async () => {
   return new Date().toLocaleDateString('en-CA'); // formato YYYY-MM-DD
 };
 
+// Obtener el próximo mes
 const obtenerProximoMes = async () => {
   const hoy = await fechaActual();
   const [anioActualStr, mesActualStr] = hoy.split('-');
@@ -21,7 +24,7 @@ const obtenerProximoMes = async () => {
   return { mes: siguienteMes, anio: anioActual };
 };
 
-// operaciones CRUD
+// Operaciones CRUD
 // Obtener la lista de reservas
 export const obtenerReservas = async (req, res) => {
   try {
@@ -138,7 +141,8 @@ export const eliminarReserva = async (req, res) => {
   }
 };
 
-// filtros
+// Filtros
+// 
 export const filtrarPorHotel = async (req, res) => {
   try {
     const { hotel } = req.params;
