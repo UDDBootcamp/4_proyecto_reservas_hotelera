@@ -2,22 +2,48 @@ import fs from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 const getReservas = './data/reservas.json';
 
+// funciones DRY
 const cargarReservas = async () => {
   const data = await fs.readFile(getReservas, 'utf-8');
   return JSON.parse(data);
 };
 
+const fechaActual = async () => {
+  return new Date().toLocaleDateString('en-CA'); // formato YYYY-MM-DD
+};
+
+const obtenerProximoMes = async () => {
+  const hoy = await fechaActual();
+  const [anioActualStr, mesActualStr] = hoy.split('-');
+  const sumarMes = Number(mesActualStr) + 1;
+  const siguienteMes = sumarMes === 13 ? 1 : sumarMes;
+  const anioActual = Number(anioActualStr);
+  return { mes: siguienteMes, anio: anioActual };
+};
+
 // operaciones CRUD
+// Obtener la lista de reservas
 export const obtenerReservas = async (req, res) => {
   try {
     const reserva = await cargarReservas();
-    res.json(reserva);
+    const hoy = await fechaActual();
+    const resultado = reserva.filter((r) => r.fecha_inicio === hoy);
+
+    if (resultado.length === 0) {
+      return res.status(404).json({ mensaje: 'No hay reservas para hoy' });
+    }
+
+    res.json({
+      mensaje: 'Reserva programadas para hoy',
+      reservas: resultado,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ mensaje: 'Error al obtener las reservas' });
   }
 };
 
+// Crear reserva
 export const crearReserva = async (req, res) => {
   try {
     const reserva = await cargarReservas();
@@ -55,6 +81,7 @@ export const crearReserva = async (req, res) => {
   }
 };
 
+// Actualizar información de una reserva
 export const actualizarReserva = async (req, res) => {
   try {
     const { idReserva } = req.params;
@@ -85,11 +112,14 @@ export const actualizarReserva = async (req, res) => {
   }
 };
 
+// Eliminar una reserva específica
 export const eliminarReserva = async (req, res) => {
   try {
     const { idReserva } = req.params;
     const reserva = await cargarReservas();
-    const resultado = reserva.findIndex((r) => r.id === Number(idReserva));
+    const resultado = reserva.findIndex(
+      (r) => r.reservas === Number(idReserva)
+    );
 
     if (resultado !== -1) {
       const eliminada = reserva.splice(resultado, 1);
@@ -133,6 +163,7 @@ export const filtrarPorHotel = async (req, res) => {
   }
 };
 
+// Filtrar reservas por rango de fechas
 export const filtrarPorFecha = async (req, res) => {
   try {
     const { fecha_inicio, fecha_fin } = req.query;
@@ -141,8 +172,8 @@ export const filtrarPorFecha = async (req, res) => {
       return (
         r.fecha_inicio &&
         r.fecha_fin &&
-        r.fecha_inicio >= fecha_inicio &&
-        r.fecha_fin <= fecha_fin
+        r.fecha_inicio <= fecha_fin &&
+        r.fecha_fin >= fecha_inicio
       );
     });
 
@@ -162,13 +193,24 @@ export const filtrarPorFecha = async (req, res) => {
   }
 };
 
+// Filtrar reservas por tipo de habitación
 export const filtrarPorHabitacion = async (req, res) => {
   try {
     const { habitacion } = req.params;
     const reserva = await cargarReservas();
-    const resultado = reserva.filter(
-      (r) => r.tipo_habitacion.toLowerCase() === habitacion.toLowerCase()
-    );
+    const { mes, anio } = await obtenerProximoMes();
+
+    const resultado = reserva.filter((r) => {
+      const [anioReservaStr, mesReservaStr] = r.fecha_inicio.split('-');
+      const anioReserva = Number(anioReservaStr);
+      const mesReserva = Number(mesReservaStr);
+
+      return (
+        r.tipo_habitacion.toLowerCase() === habitacion.toLowerCase() &&
+        mesReserva === mes &&
+        anioReserva === anio
+      );
+    });
 
     if (resultado.length === 0) {
       return res.status(404).json({
@@ -188,6 +230,7 @@ export const filtrarPorHabitacion = async (req, res) => {
   }
 };
 
+// Filtrar reservas por estado
 export const filtrarPorEstado = async (req, res) => {
   try {
     const { estado } = req.params;
@@ -212,10 +255,19 @@ export const filtrarPorEstado = async (req, res) => {
   }
 };
 
+// Filtrar reservas por número de huéspedes
 export const filtrarPorHuesped = async (req, res) => {
   try {
     const reserva = await cargarReservas();
-    const resultado = reserva.filter((r) => r.num_huespedes > 5);
+    const { mes, anio } = await obtenerProximoMes();
+
+    const resultado = reserva.filter((r) => {
+      const [anioReservaStr, mesReservaStr] = r.fecha_inicio.split('-');
+      const anioReserva = Number(anioReservaStr);
+      const mesReserva = Number(mesReservaStr);
+
+      return r.num_huespedes > 5 && mesReserva === mes && anioReserva === anio;
+    });
 
     if (resultado.length === 0) {
       return res.status(404).json({
@@ -235,6 +287,7 @@ export const filtrarPorHuesped = async (req, res) => {
   }
 };
 
+// Obtener información de una reserva específica
 export const obtenerReservasIndividual = async (req, res) => {
   try {
     const { reservaIndividual } = req.params;
