@@ -26,6 +26,19 @@ const obtenerProximoMes = async () => {
 
 // Operaciones CRUD
 // Obtener la lista de reservas
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Obtener reservas programadas para hoy
+ *     tags:
+ *       - Reservas
+ *     responses:
+ *       200:
+ *         description: Reserva programadas para hoy
+ *       404:
+ *         description: No hay reservas para hoy
+ */
 export const obtenerReservas = async (req, res) => {
   try {
     const reserva = await cargarReservas();
@@ -47,6 +60,25 @@ export const obtenerReservas = async (req, res) => {
 };
 
 // Crear reserva
+/**
+ * @swagger
+ * /:
+ *   post:
+ *     summary: Crear una nueva reserva
+ *     tags:
+ *       - Reservas
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Reserva'
+ *     responses:
+ *       201:
+ *         description: Reserva creada con éxito
+ *       500:
+ *         description: Error al crear la reserva
+ */
 export const crearReserva = async (req, res) => {
   try {
     const reserva = await cargarReservas();
@@ -85,6 +117,47 @@ export const crearReserva = async (req, res) => {
 };
 
 // Actualizar información de una reserva
+/**
+ * @swagger
+ * /{idReserva}:
+ *   put:
+ *     summary: Actualizar el tipo de habitación de una reserva existente
+ *     tags:
+ *       - Reservas
+ *     parameters:
+ *       - in: path
+ *         name: idReserva
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Número de la reserva a actualizar (ej. 12345)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               tipo_habitacion:
+ *                 type: string
+ *                 example: "suite familiar"
+ *             required:
+ *               - tipo_habitacion
+ *     responses:
+ *       200:
+ *         description: Reserva actualizada con éxito
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *                 reservas:
+ *                   $ref: '#/components/schemas/Reserva'
+ *       404:
+ *         description: Reserva no encontrada con el número de reserva
+ */
 export const actualizarReserva = async (req, res) => {
   try {
     const { idReserva } = req.params;
@@ -96,7 +169,7 @@ export const actualizarReserva = async (req, res) => {
     if (resultado === -1) {
       return res
         .status(404)
-        .json({ mensaje: 'Reserva no encontrada con ese número' });
+        .json({ mensaje: 'Reserva no encontrada con el número de reserva' });
     }
 
     reserva[resultado] = {
@@ -116,6 +189,27 @@ export const actualizarReserva = async (req, res) => {
 };
 
 // Eliminar una reserva específica
+/**
+ * @swagger
+ * /{idReserva}:
+ *   delete:
+ *     summary: Eliminar una reserva específica con el número de reserva
+ *     tags:
+ *       - Reservas
+ *     parameters:
+ *       - in: path
+ *         name: idReserva
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Eliminar reserva (ej. 12345)
+
+ *     responses:
+ *       200:
+ *         description: La reserva fue eliminada con éxito
+ *       404:
+ *         description: La reserva no fue encontrada
+ */
 export const eliminarReserva = async (req, res) => {
   try {
     const { idReserva } = req.params;
@@ -142,32 +236,101 @@ export const eliminarReserva = async (req, res) => {
 };
 
 // Filtros
-// 
+//Filtrar reservas por hotel
+/**
+ * @swagger
+ * /filtrar/{hotel}:
+ *   get:
+ *     summary: Filtrar reservas para el próximo por nombre de hotel
+ *     tags:
+ *       - Filtros
+ *     parameters:
+ *       - in: path
+ *         name: hotel
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Nombre del hotel a filtrar (ej. Hotel Paraíso)
+ *     responses:
+ *       200:
+ *         description: Reservas encontradas para el próximo mes en ese hotel
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *                 reservas:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Reserva'
+ *       404:
+ *         description: No se encontraron reservas del hotel para el próximo mes
+ *       500:
+ *         description: Error interno al filtrar por el hotel
+ */
 export const filtrarPorHotel = async (req, res) => {
   try {
     const { hotel } = req.params;
     const reserva = await cargarReservas();
-    const resultado = reserva.filter(
-      (r) => r.hotel.toLowerCase() === hotel.toLowerCase()
-    );
+    const { mes, anio } = await obtenerProximoMes();
+
+    const resultado = reserva.filter((r) => {
+      const [anioReservaStr, mesReservaStr] = r.fecha_inicio.split('-');
+      const anioReserva = Number(anioReservaStr);
+      const mesReserva = Number(mesReservaStr);
+
+      return (
+        r.hotel.toLowerCase() === hotel.toLowerCase() &&
+        mesReserva === mes &&
+        anioReserva === anio
+      );
+    });
 
     if (resultado.length === 0) {
-      return res
-        .status(404)
-        .json({ mensaje: 'No se encontraron reservas para ese hotel' });
+      return res.status(404).json({
+        mensaje: 'No se encontraron reservas del hotel para el próximo mes ',
+      });
     }
 
     res.json({
-      mensaje: 'Reserva encontradas',
+      mensaje: 'Reserva encontradas para el próximo mes',
       reservas: resultado,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ mensaje: 'Error al filtrar la reserva' });
+    res.status(500).json({ mensaje: 'Error interno al filtrar por el hotel' });
   }
 };
 
 // Filtrar reservas por rango de fechas
+/**
+ * @swagger
+ * /fecha:
+ *   get:
+ *     summary: Filtrar reservas por rango de fechas
+ *     tags:
+ *       - Filtros
+ *     parameters:
+ *       - in: query
+ *         name: fecha_inicio
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Rango de fechas a filtrar (ej. 2025-12-22)
+ *       - in: query
+ *         name: fecha_fin
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Rango de fechas a filtrar (ej. 2025-12-28)
+ *     responses:
+ *       200:
+ *         description: Reservas encontradas en el rango de fechas
+ *       404:
+ *         description: No se encontraron reservas entre las fechas indicadas
+ */
 export const filtrarPorFecha = async (req, res) => {
   try {
     const { fecha_inicio, fecha_fin } = req.query;
@@ -198,6 +361,26 @@ export const filtrarPorFecha = async (req, res) => {
 };
 
 // Filtrar reservas por tipo de habitación
+/**
+ * @swagger
+ * /habitacion/{habitacion}:
+ *   get:
+ *     summary: Filtrar reservas por tipo de habitación en el próximo mes
+ *     tags:
+ *       - Filtros
+ *     parameters:
+ *       - in: path
+ *         name: habitacion
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Tipo de habitación (ej. suites de lujo)
+ *     responses:
+ *       200:
+ *         description: Reservas encontradas según tipo de habitación
+ *       404:
+ *         description: No se encontraron habitaciones indicadas
+ */
 export const filtrarPorHabitacion = async (req, res) => {
   try {
     const { habitacion } = req.params;
@@ -235,6 +418,26 @@ export const filtrarPorHabitacion = async (req, res) => {
 };
 
 // Filtrar reservas por estado
+/**
+ * @swagger
+ * /estado/{estado}:
+ *   get:
+ *     summary: Filtrar reservas por estado (ej. pendiente, pagado)
+ *     tags:
+ *       - Filtros
+ *     parameters:
+ *       - in: path
+ *         name: estado
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Filtrar reservas según estado (ej. pendiente, pagado)
+ *     responses:
+ *       200:
+ *         description: Reservas encontradas según tipo de estado
+ *       404:
+ *         description: No se encontraron reservas con ese estado
+ */
 export const filtrarPorEstado = async (req, res) => {
   try {
     const { estado } = req.params;
@@ -245,7 +448,7 @@ export const filtrarPorEstado = async (req, res) => {
 
     if (resultado.length === 0) {
       return res.status(404).json({
-        mensaje: 'No se encontraron el estado indicado',
+        mensaje: 'No se encontraron reservas con ese estado',
       });
     }
 
@@ -260,6 +463,32 @@ export const filtrarPorEstado = async (req, res) => {
 };
 
 // Filtrar reservas por número de huéspedes
+/**
+ * @swagger
+ * /huesped:
+ *   get:
+ *     summary: Filtrar reservas para grupos de más de 5 huéspedes del próximo mes
+ *     tags:
+ *       - Filtros
+ *     responses:
+ *       200:
+ *         description: Reservas encontradas con más de 5 huéspedes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensaje:
+ *                   type: string
+ *                 reservas:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Reserva'
+ *       404:
+ *         description: No existen más de 5 huéspedes
+ *       500:
+ *         description: Error interno al filtrar por huéspedes
+ */
 export const filtrarPorHuesped = async (req, res) => {
   try {
     const reserva = await cargarReservas();
@@ -292,6 +521,26 @@ export const filtrarPorHuesped = async (req, res) => {
 };
 
 // Obtener información de una reserva específica
+/**
+ * @swagger
+ * /reservaIndividual/{reservaIndividual}:
+ *   get:
+ *     summary: Obtener detalles de una reserva específica
+ *     tags:
+ *       - Filtros
+ *     parameters:
+ *       - in: path
+ *         name: reservaIndividual
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Filtrar por número de reserva (ej. 12345)
+ *     responses:
+ *       200:
+ *         description: Reserva encontrada
+ *       404:
+ *         description: Reserva no encontrada con ese número
+ */
 export const obtenerReservasIndividual = async (req, res) => {
   try {
     const { reservaIndividual } = req.params;
