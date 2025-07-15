@@ -9,10 +9,14 @@ const swaggerDefinition = {
     description: 'Gestión de reservas para el Hotel Paraíso',
   },
   servers: [
-    {
-      url: 'http://localhost:3000/api/reservas',
-      description: 'Servidor local',
-    },
+     {
+    url: 'http://localhost:3000/api/reservas',
+    description: 'Servidor local',
+  },
+  {
+    url: 'https://four-proyecto-reservas-hotelera-pzd0.onrender.com/api/reservas',
+    description: 'Servidor en Render',
+  },
   ],
   components: {
     schemas: {
