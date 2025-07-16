@@ -10,13 +10,18 @@ const cargarReservas = async () => {
 };
 
 // Obtengo la fecha actual
-const fechaActual = async () => {
-  return new Date().toLocaleDateString('en-CA'); // formato YYYY-MM-DD
+const fechaActual = () => {
+  const fecha = new Date();
+  const año = fecha.getFullYear();
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0'); // ¡Mes comienza en 0!
+  const día = String(fecha.getDate()).padStart(2, '0');
+
+  return `${año}-${mes}-${día}`; // Siempre YYYY-MM-DD
 };
 
 // Obtener el próximo mes
-const obtenerProximoMes = async () => {
-  const hoy = await fechaActual();
+const obtenerProximoMes = () => {
+  const hoy = fechaActual();
   const [anioActualStr, mesActualStr] = hoy.split('-');
   const sumarMes = Number(mesActualStr) + 1;
   const siguienteMes = sumarMes === 13 ? 1 : sumarMes;
@@ -42,7 +47,9 @@ const obtenerProximoMes = async () => {
 export const obtenerReservas = async (req, res) => {
   try {
     const reserva = await cargarReservas();
-    const hoy = await fechaActual();
+    const hoy = fechaActual();
+    console.log(hoy);
+
     const resultado = reserva.filter((r) => r.fecha_inicio === hoy);
 
     if (resultado.length === 0) {
@@ -274,7 +281,7 @@ export const filtrarPorHotel = async (req, res) => {
   try {
     const { hotel } = req.params;
     const reserva = await cargarReservas();
-    const { mes, anio } = await obtenerProximoMes();
+    const { mes, anio } = obtenerProximoMes();
 
     const resultado = reserva.filter((r) => {
       const [anioReservaStr, mesReservaStr] = r.fecha_inicio.split('-');
@@ -385,7 +392,7 @@ export const filtrarPorHabitacion = async (req, res) => {
   try {
     const { habitacion } = req.params;
     const reserva = await cargarReservas();
-    const { mes, anio } = await obtenerProximoMes();
+    const { mes, anio } = obtenerProximoMes();
 
     const resultado = reserva.filter((r) => {
       const [anioReservaStr, mesReservaStr] = r.fecha_inicio.split('-');
@@ -492,7 +499,7 @@ export const filtrarPorEstado = async (req, res) => {
 export const filtrarPorHuesped = async (req, res) => {
   try {
     const reserva = await cargarReservas();
-    const { mes, anio } = await obtenerProximoMes();
+    const { mes, anio } = obtenerProximoMes();
 
     const resultado = reserva.filter((r) => {
       const [anioReservaStr, mesReservaStr] = r.fecha_inicio.split('-');
